@@ -20,19 +20,6 @@
 package org.sonar.batch.scan.filesystem;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonar.api.batch.BatchSide;
-import org.sonar.api.batch.bootstrap.ProjectDefinition;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.InputFile.Type;
-import org.sonar.api.batch.fs.InputFileFilter;
-import org.sonar.api.batch.fs.internal.DefaultInputDir;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.scan.filesystem.PathResolver;
-import org.sonar.api.utils.MessageException;
-import org.sonar.batch.util.ProgressReport;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemLoopException;
@@ -54,6 +41,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonar.api.batch.BatchSide;
+import org.sonar.api.batch.bootstrap.ProjectDefinition;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.InputFile.Type;
+import org.sonar.api.batch.fs.InputFileFilter;
+import org.sonar.api.batch.fs.internal.DefaultInputDir;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
+import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.api.utils.MessageException;
+import org.sonar.batch.util.ProgressReport;
 
 /**
  * Index input files into {@link InputPathCache}.
@@ -62,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 public class FileIndexer {
 
   private static final Logger LOG = LoggerFactory.getLogger(FileIndexer.class);
-  private final List<InputFileFilter> filters;
+  private final InputFileFilter[] filters;
   private final boolean isAggregator;
   private final ExclusionFilters exclusionFilters;
   private final InputFileBuilderFactory inputFileBuilderFactory;
@@ -71,8 +70,13 @@ public class FileIndexer {
   private ExecutorService executorService;
   private List<Future<Void>> tasks;
 
-  public FileIndexer(List<InputFileFilter> filters, ExclusionFilters exclusionFilters, InputFileBuilderFactory inputFileBuilderFactory,
+  public FileIndexer(ExclusionFilters exclusionFilters, InputFileBuilderFactory inputFileBuilderFactory,
     ProjectDefinition def) {
+    this(exclusionFilters, inputFileBuilderFactory, def, new InputFileFilter[0]);
+  }
+
+  public FileIndexer(ExclusionFilters exclusionFilters, InputFileBuilderFactory inputFileBuilderFactory,
+    ProjectDefinition def, InputFileFilter... filters) {
     this.filters = filters;
     this.exclusionFilters = exclusionFilters;
     this.inputFileBuilderFactory = inputFileBuilderFactory;

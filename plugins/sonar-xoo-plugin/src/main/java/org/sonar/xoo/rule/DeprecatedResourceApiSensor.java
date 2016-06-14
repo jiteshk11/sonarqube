@@ -19,28 +19,29 @@
  */
 package org.sonar.xoo.rule;
 
-import java.io.File;
 import org.sonar.api.batch.Sensor;
+import org.sonar.api.batch.fs.FilePredicates;
+import org.sonar.api.batch.fs.FileSystem;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.issue.Issuable;
 import org.sonar.api.resources.Directory;
+import org.sonar.api.resources.File;
 import org.sonar.api.resources.Project;
 import org.sonar.api.rule.RuleKey;
-import org.sonar.api.scan.filesystem.FileQuery;
-import org.sonar.api.scan.filesystem.ModuleFileSystem;
-import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.xoo.Xoo;
 
 @SuppressWarnings("deprecation")
 public class DeprecatedResourceApiSensor implements Sensor {
 
   public static final String RULE_KEY = "DeprecatedResourceApi";
-  private final ModuleFileSystem fileSystem;
+  private final FileSystem fileSystem;
   private final ResourcePerspectives perspectives;
   private final ActiveRules activeRules;
 
-  public DeprecatedResourceApiSensor(ModuleFileSystem fileSystem, ResourcePerspectives perspectives, ActiveRules activeRules) {
+  public DeprecatedResourceApiSensor(FileSystem fileSystem, ResourcePerspectives perspectives, ActiveRules activeRules) {
     this.fileSystem = fileSystem;
     this.perspectives = perspectives;
     this.activeRules = activeRules;
@@ -48,18 +49,17 @@ public class DeprecatedResourceApiSensor implements Sensor {
 
   @Override
   public boolean shouldExecuteOnProject(Project project) {
-    return !fileSystem.files(FileQuery.onMain().onLanguage(Xoo.KEY)).isEmpty() && activeRules.find(RuleKey.of(XooRulesDefinition.XOO_REPOSITORY, RULE_KEY)) != null;
+    FilePredicates p = fileSystem.predicates();
+    return fileSystem.hasFiles(p.and(p.hasLanguage(Xoo.KEY), p.hasType(Type.MAIN))) && activeRules.find(RuleKey.of(XooRulesDefinition.XOO_REPOSITORY, RULE_KEY)) != null;
   }
 
   @Override
   public void analyse(Project module, org.sonar.api.batch.SensorContext context) {
     createIssueOnDir(new Directory(""));
-    File src = fileSystem.sourceDirs().get(0);
 
-    for (File f : fileSystem.files(FileQuery.onMain().onLanguage(Xoo.KEY))) {
-      String relativePathFromSourceDir = new PathResolver().relativePath(src, f);
-      org.sonar.api.resources.File sonarFile = new org.sonar.api.resources.File(relativePathFromSourceDir);
-      Issuable issuable = perspectives.as(Issuable.class, sonarFile);
+    FilePredicates p = fileSystem.predicates();
+    for (InputFile f : fileSystem.inputFiles(p.and(p.hasLanguage(Xoo.KEY), p.hasType(Type.MAIN)))) {
+      Issuable issuable = perspectives.as(Issuable.class, f);
       issuable.addIssue(issuable.newIssueBuilder()
         .ruleKey(RuleKey.of(XooRulesDefinition.XOO_REPOSITORY, RULE_KEY))
         .message("Issue created using deprecated API")
@@ -73,7 +73,7 @@ public class DeprecatedResourceApiSensor implements Sensor {
         .line(null)
         .build());
 
-      sonarFile = context.getResource(sonarFile);
+      File sonarFile = (File) context.getResource(f);
       Directory parent = sonarFile.getParent();
       createIssueOnDir(parent);
     }

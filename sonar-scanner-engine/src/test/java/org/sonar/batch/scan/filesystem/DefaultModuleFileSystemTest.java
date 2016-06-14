@@ -19,11 +19,12 @@
  */
 package org.sonar.batch.scan.filesystem;
 
-import org.sonar.api.batch.fs.InputFile.Status;
-
-import org.junit.Before;
-import org.sonar.batch.analysis.DefaultAnalysisMode;
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,14 +32,11 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.InputFile.Status;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Project;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Arrays;
+import org.sonar.batch.analysis.DefaultAnalysisMode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -97,7 +95,7 @@ public class DefaultModuleFileSystemTest {
     DefaultModuleFileSystem fs = new DefaultModuleFileSystem(moduleInputFileCache,
       new Project("foo"), settings, fileIndexer, initializer, componentIndexer, mode);
 
-    assertThat(fs.sourceCharset()).isEqualTo(Charset.defaultCharset());
+    assertThat(fs.encoding()).isEqualTo(Charset.defaultCharset());
     assertThat(fs.isDefaultJvmEncoding()).isTrue();
   }
 
@@ -108,7 +106,6 @@ public class DefaultModuleFileSystemTest {
       new Project("foo"), settings, fileIndexer, initializer, componentIndexer, mode);
 
     assertThat(fs.encoding()).isEqualTo(Charset.forName("Cp1124"));
-    assertThat(fs.sourceCharset()).isEqualTo(Charset.forName("Cp1124"));
 
     // This test fails when default Java encoding is "IBM AIX Ukraine". Sorry for that.
     assertThat(fs.isDefaultJvmEncoding()).isFalse();
@@ -144,7 +141,6 @@ public class DefaultModuleFileSystemTest {
     File additionalFile = temp.newFile("Main.java");
     File additionalTest = temp.newFile("Test.java");
     when(initializer.baseDir()).thenReturn(basedir);
-    when(initializer.buildDir()).thenReturn(buildDir);
     when(initializer.workingDir()).thenReturn(workingDir);
     File javaSrc = new File(basedir, "src/main/java");
     javaSrc.mkdirs();
@@ -160,10 +156,8 @@ public class DefaultModuleFileSystemTest {
 
     assertThat(fs.baseDir().getCanonicalPath()).isEqualTo(basedir.getCanonicalPath());
     assertThat(fs.workDir().getCanonicalPath()).isEqualTo(workingDir.getCanonicalPath());
-    assertThat(fs.buildDir().getCanonicalPath()).isEqualTo(buildDir.getCanonicalPath());
-    assertThat(fs.sourceDirs()).hasSize(2);
-    assertThat(fs.testDirs()).hasSize(1);
-    assertThat(fs.binaryDirs()).hasSize(1);
+    assertThat(fs.sources()).hasSize(2);
+    assertThat(fs.tests()).hasSize(1);
   }
 
   @Test

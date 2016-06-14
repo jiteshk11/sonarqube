@@ -62,7 +62,6 @@ import org.sonar.batch.rule.RuleFinderCompatibility;
 import org.sonar.batch.rule.RulesProfileProvider;
 import org.sonar.batch.scan.filesystem.ComponentIndexer;
 import org.sonar.batch.scan.filesystem.DefaultModuleFileSystem;
-import org.sonar.batch.scan.filesystem.DeprecatedFileFilters;
 import org.sonar.batch.scan.filesystem.ExclusionFilters;
 import org.sonar.batch.scan.filesystem.FileIndexer;
 import org.sonar.batch.scan.filesystem.FileSystemLogger;
@@ -126,7 +125,6 @@ public class ModuleScanContainer extends ComponentContainer {
       ModuleInputFileCache.class,
       FileExclusions.class,
       ExclusionFilters.class,
-      DeprecatedFileFilters.class,
       InputFileBuilderFactory.class,
       FileMetadata.class,
       StatusDetectionFactory.class,
