@@ -60,7 +60,6 @@ public class DefaultModuleFileSystem extends DefaultFileSystem implements Module
   private File buildDir;
   private List<File> sourceDirsOrFiles = Lists.newArrayList();
   private List<File> testDirsOrFiles = Lists.newArrayList();
-  private List<File> binaryDirs = Lists.newArrayList();
   private ComponentIndexer componentIndexer;
   private boolean initialized;
 
@@ -87,7 +86,6 @@ public class DefaultModuleFileSystem extends DefaultFileSystem implements Module
     this.buildDir = initializer.buildDir();
     this.sourceDirsOrFiles = initializer.sources();
     this.testDirsOrFiles = initializer.tests();
-    this.binaryDirs = initializer.binaryDirs();
 
     // filter the files sensors have access to
     if (!mode.scanAllFiles()) {
@@ -139,7 +137,7 @@ public class DefaultModuleFileSystem extends DefaultFileSystem implements Module
 
   @Override
   public List<File> binaryDirs() {
-    return binaryDirs;
+    return null;
   }
 
   @Override

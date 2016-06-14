@@ -146,7 +146,6 @@ public class DefaultModuleFileSystemTest {
     when(initializer.baseDir()).thenReturn(basedir);
     when(initializer.buildDir()).thenReturn(buildDir);
     when(initializer.workingDir()).thenReturn(workingDir);
-    when(initializer.binaryDirs()).thenReturn(Arrays.asList(new File(basedir, "target/classes")));
     File javaSrc = new File(basedir, "src/main/java");
     javaSrc.mkdirs();
     File groovySrc = new File(basedir, "src/main/groovy");
