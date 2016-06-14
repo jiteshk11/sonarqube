@@ -178,23 +178,6 @@ public final class CoreMetrics {
     .setDomain(DOMAIN_SIZE)
     .create();
 
-  /**
-   * @deprecated since 4.2 there is now only directory
-   */
-  @Deprecated
-  public static final String PACKAGES_KEY = "packages";
-  /**
-   * @deprecated since 4.2 there is now only directory
-   */
-  @Deprecated
-  public static final Metric<Integer> PACKAGES = new Metric.Builder(PACKAGES_KEY, "Packages", Metric.ValueType.INT)
-    .setDescription("Packages")
-    .setDirection(Metric.DIRECTION_WORST)
-    .setQualitative(false)
-    .setDomain(DOMAIN_SIZE)
-    .setHidden(true)
-    .create();
-
   public static final String FUNCTIONS_KEY = "functions";
   public static final Metric<Integer> FUNCTIONS = new Metric.Builder(FUNCTIONS_KEY, "Functions", Metric.ValueType.INT)
     .setDescription("Functions")
@@ -296,26 +279,6 @@ public final class CoreMetrics {
     .setBestValue(0.0)
     .setDirection(Metric.DIRECTION_WORST)
     .setOptimizedBestValue(true)
-    .create();
-
-  /**
-   * @deprecated since 4.2 - see SONAR-4990
-   */
-  @Deprecated
-  public static final String COMMENTED_OUT_CODE_LINES_KEY = "commented_out_code_lines";
-
-  /**
-   * @deprecated since 4.2 - see SONAR-4990
-   */
-  @Deprecated
-  public static final Metric<Integer> COMMENTED_OUT_CODE_LINES = new Metric.Builder(COMMENTED_OUT_CODE_LINES_KEY, "Commented-Out LOC", Metric.ValueType.INT)
-    .setDescription("Commented lines of code")
-    .setDirection(Metric.DIRECTION_WORST)
-    .setQualitative(true)
-    .setDomain(DOMAIN_DOCUMENTATION)
-    .setBestValue(0.0)
-    .setOptimizedBestValue(true)
-    .setHidden(true)
     .create();
 
   // --------------------------------------------------------------------------------------------------------------------
@@ -1361,41 +1324,6 @@ public final class CoreMetrics {
     .setOptimizedBestValue(true)
     .create();
 
-  /**
-   * @deprecated since 4.5. Internal storage of duplication is not an API.
-   */
-  @Deprecated
-  public static final String DUPLICATIONS_DATA_KEY = "duplications_data";
-
-  /**
-   * Information about duplications, which is represented as an XML string.
-   * <p>
-   * Here is the format (since Sonar 2.12):
-   * <pre>
-   * {@literal
-   * <duplications>
-   *   <!-- Multiple groups: -->
-   *   <g>
-   *     <!-- Multiple blocks: -->
-   *     <b r="[resource key]" s="[first line]" l="[number of lines]" />
-   *     ...
-   *   </g>
-   *   ...
-   * </duplications>
-   * }
-   * </pre>
-   * 
-   * @deprecated since 4.5. Internal storage of duplication is not an API.
-   */
-  @Deprecated
-  public static final Metric<String> DUPLICATIONS_DATA = new Metric.Builder(DUPLICATIONS_DATA_KEY, "Duplication Details", Metric.ValueType.DATA)
-    .setDescription("Duplications details")
-    .setDirection(Metric.DIRECTION_NONE)
-    .setQualitative(false)
-    .setDomain(DOMAIN_DUPLICATIONS)
-    .setDeleteHistoricalData(true)
-    .create();
-
   // --------------------------------------------------------------------------------------------------------------------
   //
   // CODING RULES
@@ -1732,150 +1660,6 @@ public final class CoreMetrics {
   // DESIGN
   //
   // --------------------------------------------------------------------------------------------------------------------
-
-  /**
-   * @deprecated since 4.0. See SONAR-4643
-   */
-  @Deprecated
-  public static final String DEPTH_IN_TREE_KEY = "dit";
-  /**
-   * @deprecated since 4.0. See SONAR-4643
-   */
-  @Deprecated
-  public static final transient Metric<Integer> DEPTH_IN_TREE = new Metric.Builder(DEPTH_IN_TREE_KEY, "Depth in Tree", Metric.ValueType.INT)
-    .setDescription("Depth in Inheritance Tree")
-    .setDirection(Metric.DIRECTION_NONE)
-    .setQualitative(false)
-    .setDomain(DOMAIN_DESIGN)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated since 4.0. See SONAR-4643
-   */
-  @Deprecated
-  public static final String NUMBER_OF_CHILDREN_KEY = "noc";
-  /**
-   * @deprecated since 4.0. See SONAR-4643
-   */
-  @Deprecated
-  public static final transient Metric<Integer> NUMBER_OF_CHILDREN = new Metric.Builder(NUMBER_OF_CHILDREN_KEY, "Number of Children", Metric.ValueType.INT)
-    .setDescription("Number of Children")
-    .setDirection(Metric.DIRECTION_NONE)
-    .setQualitative(false)
-    .setDomain(DOMAIN_DESIGN)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated since 4.2. See SONAR-5042
-   */
-  @Deprecated
-  public static final String RFC_KEY = "rfc";
-
-  /**
-   * @deprecated since 4.2. See SONAR-5042
-   */
-  @Deprecated
-  public static final transient Metric<Integer> RFC = new Metric.Builder(RFC_KEY, "RFC", Metric.ValueType.INT)
-    .setDescription("Response for Class")
-    .setDirection(Metric.DIRECTION_WORST)
-    .setQualitative(false)
-    .setDomain(DOMAIN_DESIGN)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated since 4.2. See SONAR-5042
-   */
-  @Deprecated
-  public static final String RFC_DISTRIBUTION_KEY = "rfc_distribution";
-
-  /**
-   * @deprecated since 4.2. See SONAR-5042
-   */
-  @Deprecated
-  public static final transient Metric<String> RFC_DISTRIBUTION = new Metric.Builder(RFC_DISTRIBUTION_KEY, "Class Distribution / RFC", Metric.ValueType.DISTRIB)
-    .setDescription("Class distribution /RFC")
-    .setDirection(Metric.DIRECTION_NONE)
-    .setQualitative(true)
-    .setDomain(DOMAIN_DESIGN)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final String LCOM4_KEY = "lcom4";
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final transient Metric<Double> LCOM4 = new Metric.Builder(LCOM4_KEY, "LCOM4", Metric.ValueType.FLOAT)
-    .setDescription("Lack of Cohesion of Functions")
-    .setDirection(Metric.DIRECTION_WORST)
-    .setQualitative(true)
-    .setDomain(DOMAIN_DESIGN)
-    .setBestValue(1.0)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final String LCOM4_BLOCKS_KEY = "lcom4_blocks";
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final transient Metric<String> LCOM4_BLOCKS = new Metric.Builder(LCOM4_BLOCKS_KEY, "LCOM4 Blocks", Metric.ValueType.DATA)
-    .setDescription("LCOM4 blocks")
-    .setDirection(Metric.DIRECTION_NONE)
-    .setQualitative(false)
-    .setDomain(DOMAIN_DESIGN)
-    .setDeleteHistoricalData(true)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final String LCOM4_DISTRIBUTION_KEY = "lcom4_distribution";
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final transient Metric<String> LCOM4_DISTRIBUTION = new Metric.Builder(LCOM4_DISTRIBUTION_KEY, "Class Distribution / LCOM4", Metric.ValueType.DISTRIB)
-    .setDescription("Class distribution /LCOM4")
-    .setDirection(Metric.DIRECTION_NONE)
-    .setQualitative(true)
-    .setDomain(DOMAIN_DESIGN)
-    .setHidden(true)
-    .create();
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final String SUSPECT_LCOM4_DENSITY_KEY = "suspect_lcom4_density";
-
-  /**
-   * @deprecated in 4.1. See http://jira.sonarsource.com/browse/SONAR-4853
-   */
-  @Deprecated
-  public static final transient Metric<Double> SUSPECT_LCOM4_DENSITY = new Metric.Builder(SUSPECT_LCOM4_DENSITY_KEY, "Suspect LCOM4 Density", Metric.ValueType.PERCENT)
-    .setDescription("Density of classes having LCOM4>1")
-    .setDirection(Metric.DIRECTION_WORST)
-    .setQualitative(true)
-    .setDomain(DOMAIN_DESIGN)
-    .setHidden(true)
-    .create();
 
   /**
    * @deprecated since 5.0 this is an internal metric that should not be accessed by plugins
@@ -2425,7 +2209,7 @@ public final class CoreMetrics {
    */
   public static final Metric<Long> NEW_SECURITY_REMEDIATION_EFFORT = new Metric.Builder(NEW_SECURITY_REMEDIATION_EFFORT_KEY, "Security Remediation Effort on New Code",
     Metric.ValueType.WORK_DUR)
-    .setDescription("Security remediation effort on new code")
+      .setDescription("Security remediation effort on new code")
       .setDomain(DOMAIN_SECURITY)
       .setDirection(Metric.DIRECTION_WORST)
       .setOptimizedBestValue(true)
@@ -2537,38 +2321,6 @@ public final class CoreMetrics {
   public static final Metric<String> QUALITY_GATE_DETAILS = new Metric.Builder(QUALITY_GATE_DETAILS_KEY, "Quality Gate Details", Metric.ValueType.DATA)
     .setDescription("The project detailed status with regard to its quality gate")
     .setDomain(DOMAIN_GENERAL)
-    .create();
-
-  /**
-   * @deprecated since 4.4 doesn't support multi-language. See {@link #QUALITY_PROFILES_KEY}
-   */
-  @Deprecated
-  public static final String PROFILE_KEY = "profile";
-  /**
-   * @deprecated since 4.4 doesn't support multi-language. See {@link #QUALITY_PROFILES_KEY}
-   */
-  @Deprecated
-  public static final Metric<String> PROFILE = new Metric.Builder(PROFILE_KEY, "Profile", Metric.ValueType.DATA)
-    .setDescription("Selected quality profile")
-    .setDomain(DOMAIN_GENERAL)
-    .create();
-
-  /**
-   * @since 2.9
-   * @deprecated since 4.4 doesn't support multi-language. See {@link #QUALITY_PROFILES_KEY}
-   */
-  @Deprecated
-  public static final String PROFILE_VERSION_KEY = "profile_version";
-  /**
-   * @since 2.9
-   * @deprecated since 4.4 doesn't support multi-language. See {@link #QUALITY_PROFILES_KEY}
-   */
-  @Deprecated
-  public static final Metric<Integer> PROFILE_VERSION = new Metric.Builder(PROFILE_VERSION_KEY, "Profile Version", Metric.ValueType.INT)
-    .setDescription("Selected quality profile version")
-    .setQualitative(false)
-    .setDomain(DOMAIN_GENERAL)
-    .setHidden(true)
     .create();
 
   /**
