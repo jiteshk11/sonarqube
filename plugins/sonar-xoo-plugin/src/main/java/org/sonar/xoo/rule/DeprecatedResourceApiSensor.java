@@ -55,8 +55,6 @@ public class DeprecatedResourceApiSensor implements Sensor {
 
   @Override
   public void analyse(Project module, org.sonar.api.batch.SensorContext context) {
-    createIssueOnDir(new Directory(""));
-
     FilePredicates p = fileSystem.predicates();
     for (InputFile f : fileSystem.inputFiles(p.and(p.hasLanguage(Xoo.KEY), p.hasType(Type.MAIN)))) {
       Issuable issuable = perspectives.as(Issuable.class, f);
