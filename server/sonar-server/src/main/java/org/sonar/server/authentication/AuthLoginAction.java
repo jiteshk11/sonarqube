@@ -20,9 +20,8 @@
 
 package org.sonar.server.authentication;
 
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
-import static org.sonar.api.CoreProperties.CORE_FORCE_AUTHENTICATION_PROPERTY;
-import static org.sonar.api.web.ServletFilter.UrlPattern.Builder.staticResourcePatterns;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static org.elasticsearch.common.Strings.isNullOrEmpty;
 
 import java.io.IOException;
 import javax.servlet.FilterChain;
@@ -32,30 +31,24 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.sonar.api.config.Settings;
-import org.sonar.api.server.ServerSide;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.server.exceptions.UnauthorizedException;
 
-@ServerSide
-public class ValidateJwtTokenFilter extends ServletFilter {
+public class AuthLoginAction extends ServletFilter {
 
-  private final Settings settings;
-  private final JwtHttpHandler jwtHttpHandler;
+  static final String URL = "/api/auth/login";
 
-  public ValidateJwtTokenFilter(Settings settings, JwtHttpHandler jwtHttpHandler) {
-    this.settings = settings;
-    this.jwtHttpHandler = jwtHttpHandler;
+  private static final String POST = "POST";
+
+  private final CredentialsAuthenticator credentialsAuthenticator;
+
+  public AuthLoginAction(CredentialsAuthenticator credentialsAuthenticator) {
+    this.credentialsAuthenticator = credentialsAuthenticator;
   }
 
   @Override
   public UrlPattern doGetPattern() {
-    return UrlPattern.builder()
-      .includes("/*")
-      .excludes(staticResourcePatterns())
-      // TODO Why filter this url ???
-      .excludes(AuthLoginAction.URL)
-      .build();
+    return UrlPattern.create(URL);
   }
 
   @Override
@@ -63,18 +56,25 @@ public class ValidateJwtTokenFilter extends ServletFilter {
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-    try {
-      boolean isAuthenticated = jwtHttpHandler.validateToken(request, response);
-      // TODO handle basic authentication
-      if (!isAuthenticated && settings.getBoolean(CORE_FORCE_AUTHENTICATION_PROPERTY)) {
-        throw new UnauthorizedException("User must be authenticated");
+    if (!request.getMethod().equals(POST)) {
+      response.setStatus(HTTP_BAD_REQUEST);
+    } else {
+      try {
+        authenticate(request, response);
+        // TODO add chain.doFilter when Rack filter will not be executed after this filter (or use a Servlet)
+      } catch (UnauthorizedException e) {
+        response.setStatus(e.httpCode());
       }
-
-      chain.doFilter(request, response);
-    } catch (UnauthorizedException e) {
-      jwtHttpHandler.removeToken(response);
-      response.setStatus(HTTP_UNAUTHORIZED);
     }
+  }
+
+  private void authenticate(HttpServletRequest request, HttpServletResponse response) {
+    String login = request.getParameter("login");
+    String password = request.getParameter("password");
+    if (isNullOrEmpty(login) || isNullOrEmpty(password)) {
+      throw new UnauthorizedException();
+    }
+    credentialsAuthenticator.authenticate(login, password, request, response);
   }
 
   @Override

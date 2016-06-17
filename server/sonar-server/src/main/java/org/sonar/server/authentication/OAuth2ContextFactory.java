@@ -112,7 +112,7 @@ public class OAuth2ContextFactory {
 
     @Override
     public void authenticate(UserIdentity userIdentity) {
-      userIdentityAuthenticator.authenticate(userIdentity, identityProvider, request, response);
+      userIdentityAuthenticator.authenticate(userIdentity, identityProvider, response);
     }
   }
 }

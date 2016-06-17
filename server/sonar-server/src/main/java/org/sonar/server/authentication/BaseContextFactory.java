@@ -67,7 +67,7 @@ public class BaseContextFactory {
 
     @Override
     public void authenticate(UserIdentity userIdentity) {
-      userIdentityAuthenticator.authenticate(userIdentity, identityProvider, request, response);
+      userIdentityAuthenticator.authenticate(userIdentity, identityProvider, response);
     }
   }
 }

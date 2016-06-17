@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.sonar.api.server.authentication.IdentityProvider;
 import org.sonar.api.server.authentication.UnauthorizedException;
@@ -62,12 +61,9 @@ public class UserIdentityAuthenticator {
     this.jwtHttpHandler = jwtHttpHandler;
   }
 
-  public void authenticate(UserIdentity user, IdentityProvider provider, HttpServletRequest request, HttpServletResponse response) {
+  public void authenticate(UserIdentity user, IdentityProvider provider, HttpServletResponse response) {
     UserDto userDb = register(user, provider);
-
-    // hack to disable Ruby on Rails authentication
-    request.getSession().setAttribute("user_id", userDb.getId());
-    jwtHttpHandler.generateToken(userDb.getLogin(), response);
+    jwtHttpHandler.generateToken(userDb, response);
   }
 
   private UserDto register(UserIdentity user, IdentityProvider provider) {
@@ -101,8 +97,7 @@ public class UserIdentityAuthenticator {
       .setLogin(userLogin)
       .setEmail(user.getEmail())
       .setName(user.getName())
-      .setExternalIdentity(new ExternalIdentity(provider.getKey(), user.getProviderLogin()))
-      );
+      .setExternalIdentity(new ExternalIdentity(provider.getKey(), user.getProviderLogin())));
     UserDto newUser = dbClient.userDao().selectOrFailByLogin(dbSession, userLogin);
     syncGroups(dbSession, user, newUser);
     return newUser;
@@ -138,27 +133,19 @@ public class UserIdentityAuthenticator {
   }
 
   private void addGroups(DbSession dbSession, UserDto userDto, Collection<String> groupsToAdd, Map<String, GroupDto> groupsByName) {
-    if (!groupsToAdd.isEmpty()) {
-      for (String groupToAdd : groupsToAdd) {
-        GroupDto groupDto = groupsByName.get(groupToAdd);
-        if (groupDto != null) {
-          LOGGER.debug("Adding group '{}' to user '{}'", groupDto.getName(), userDto.getLogin());
-          dbClient.userGroupDao().insert(dbSession, new UserGroupDto().setGroupId(groupDto.getId()).setUserId(userDto.getId()));
-        }
-      }
-    }
+    groupsToAdd.stream().map(groupsByName::get).filter(groupDto -> groupDto != null).forEach(
+      groupDto -> {
+        LOGGER.debug("Adding group '{}' to user '{}'", groupDto.getName(), userDto.getLogin());
+        dbClient.userGroupDao().insert(dbSession, new UserGroupDto().setGroupId(groupDto.getId()).setUserId(userDto.getId()));
+      });
   }
 
   private void removeGroups(DbSession dbSession, UserDto userDto, Collection<String> groupsToRemove, Map<String, GroupDto> groupsByName) {
-    if (!groupsToRemove.isEmpty()) {
-      for (String groupToRemove : groupsToRemove) {
-        GroupDto groupDto = groupsByName.get(groupToRemove);
-        if (groupDto != null) {
-          LOGGER.debug("Removing group '{}' from user '{}'", groupDto.getName(), userDto.getLogin());
-          dbClient.userGroupDao().delete(dbSession, new UserGroupDto().setGroupId(groupDto.getId()).setUserId(userDto.getId()));
-        }
-      }
-    }
+    groupsToRemove.stream().map(groupsByName::get).filter(groupDto -> groupDto != null).forEach(
+      groupDto -> {
+        LOGGER.debug("Removing group '{}' from user '{}'", groupDto.getName(), userDto.getLogin());
+        dbClient.userGroupDao().delete(dbSession, new UserGroupDto().setGroupId(groupDto.getId()).setUserId(userDto.getId()));
+      });
   }
 
   private enum GroupDtoToName implements Function<GroupDto, String> {

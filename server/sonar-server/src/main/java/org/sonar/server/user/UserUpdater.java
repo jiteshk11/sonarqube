@@ -19,6 +19,10 @@
  */
 package org.sonar.server.user;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.sonar.db.user.UserDto.encryptPassword;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -46,9 +50,6 @@ import org.sonar.server.exceptions.NotFoundException;
 import org.sonar.server.exceptions.ServerException;
 import org.sonar.server.user.index.UserIndexer;
 import org.sonar.server.util.Validation;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Lists.newArrayList;
 
 @ServerSide
 public class UserUpdater {
@@ -226,7 +227,7 @@ public class UserUpdater {
       userDto.setEmail(email);
     }
 
-    if (isNewExternalIdentityNotEqualsToSonaQube(updateUser)) {
+    if (updateUser.isExternalIdentityChanged()) {
       setExternalIdentity(userDto, updateUser.externalIdentity());
       userDto.setSalt(null);
       userDto.setCryptedPassword(null);
@@ -247,10 +248,6 @@ public class UserUpdater {
       } else {
         userDto.setScmAccounts((String) null);
       }
-    }
-
-    if (updateUser.isExternalIdentityChanged()) {
-      setExternalIdentity(userDto, updateUser.externalIdentity());
     }
 
     if (!messages.isEmpty()) {
@@ -309,14 +306,6 @@ public class UserUpdater {
     }
   }
 
-  private static boolean isNewExternalIdentityNotEqualsToSonaQube(UpdateUser updateUser) {
-    ExternalIdentity externalIdentity = updateUser.externalIdentity();
-    if (updateUser.isExternalIdentityChanged() && externalIdentity != null) {
-      return !externalIdentity.getProvider().equals(SQ_AUTHORITY);
-    }
-    return false;
-  }
-
   private static void validatePasswords(@Nullable String password, List<Message> messages) {
     if (password == null || password.length() == 0) {
       messages.add(Message.of(Validation.CANT_BE_EMPTY_MESSAGE, PASSWORD_PARAM));
@@ -371,10 +360,6 @@ public class UserUpdater {
     String saltHex = DigestUtils.sha1Hex(salt);
     userDto.setSalt(saltHex);
     userDto.setCryptedPassword(encryptPassword(password, saltHex));
-  }
-
-  private static String encryptPassword(String password, String salt) {
-    return DigestUtils.sha1Hex("--" + salt + "--" + password + "--");
   }
 
   private void notifyNewUser(String login, String name, String email) {

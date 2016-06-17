@@ -30,8 +30,8 @@ import static org.mockito.Mockito.when;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.junit.Before;
 import org.junit.Test;
+import org.sonar.api.config.Settings;
 import org.sonar.server.exceptions.UnauthorizedException;
 
 public class ValidateJwtTokenFilterTest {
@@ -42,18 +42,16 @@ public class ValidateJwtTokenFilterTest {
 
   JwtHttpHandler jwtHttpHandler = mock(JwtHttpHandler.class);
 
-  ValidateJwtTokenFilter underTest = new ValidateJwtTokenFilter(jwtHttpHandler);
+  Settings settings = new Settings();
 
-  @Before
-  public void setUp() throws Exception {
-    when(request.getContextPath()).thenReturn("");
-    when(request.getRequestURI()).thenReturn("/test");
-  }
+  ValidateJwtTokenFilter underTest = new ValidateJwtTokenFilter(settings, jwtHttpHandler);
 
   @Test
   public void do_get_pattern() throws Exception {
     assertThat(underTest.doGetPattern().matches("/")).isTrue();
     assertThat(underTest.doGetPattern().matches("/foo")).isTrue();
+
+    assertThat(underTest.doGetPattern().matches("/api/auth/login")).isFalse();
 
     // exclude static resources
     assertThat(underTest.doGetPattern().matches("/css/style.css")).isFalse();
@@ -80,4 +78,14 @@ public class ValidateJwtTokenFilterTest {
     verifyZeroInteractions(chain);
   }
 
+  @Test
+  public void return_code_401_when_not_authenticated_and_with_force_authentication() throws Exception {
+    settings.setProperty("sonar.forceAuthentication", true);
+    when(jwtHttpHandler.validateToken(request, response)).thenReturn(false);
+
+    underTest.doFilter(request, response, chain);
+
+    verify(response).setStatus(401);
+    verifyZeroInteractions(chain);
+  }
 }

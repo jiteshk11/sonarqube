@@ -19,36 +19,55 @@
  */
 package org.sonar.server.user;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.sonar.api.security.DefaultGroups;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.sonar.db.DbClient;
+import org.sonar.db.DbSession;
 import org.sonar.db.component.ResourceDao;
 import org.sonar.db.component.ResourceDto;
 import org.sonar.db.user.AuthorizationDao;
-
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newHashSet;
+import org.sonar.db.user.GroupDto;
+import org.sonar.db.user.UserDto;
 
 /**
  * Part of the current HTTP session
  */
 public class ServerUserSession extends AbstractUserSession<ServerUserSession> {
-
   private Map<String, String> projectKeyByComponentKey = newHashMap();
 
+  private final DbClient dbClient;
   private final AuthorizationDao authorizationDao;
   private final ResourceDao resourceDao;
 
-  ServerUserSession(AuthorizationDao authorizationDao, ResourceDao resourceDao) {
+  public ServerUserSession(DbClient dbClient, UserDto userDto) {
     super(ServerUserSession.class);
+    requireNonNull(userDto, "UserDto must not be null");
+    this.dbClient = dbClient;
+    this.setLogin(userDto.getLogin());
+    this.setName(userDto.getName());
+    this.setUserId(userDto.getId().intValue());
+    this.userGroups = getUserGroups(userDto.getLogin());
+
     this.globalPermissions = null;
-    this.authorizationDao = authorizationDao;
-    this.resourceDao = resourceDao;
-    // Do not forget that when forceAuthentication is set to true, the Anyone group should not be set (but this will be check when
-    // authentication will be done in Java)
-    this.userGroups = newHashSet(DefaultGroups.ANYONE);
+    this.authorizationDao = dbClient.authorizationDao();
+    this.resourceDao = dbClient.resourceDao();
+  }
+
+  private Set<String> getUserGroups(String userLogin){
+    DbSession dbSession = dbClient.openSession(false);
+    try {
+      return new HashSet<>(dbClient.groupDao().selectByUserLogin(dbSession, userLogin).stream().map(GroupDto::getName).collect(Collectors.toSet()));
+    } finally {
+      dbClient.closeSession(dbSession);
+    }
   }
 
   @Override
